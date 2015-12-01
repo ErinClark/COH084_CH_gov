@@ -105,7 +105,6 @@ year = 2014
 while year <= this_year:
 
     url = "https://www.gov.uk/government/publications/companies-house-purchase-ledger-spend-" + str(year)
-    print url
     year = year + 1
 
     html = urllib2.urlopen(url)
