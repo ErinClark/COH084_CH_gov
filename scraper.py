@@ -86,29 +86,30 @@ def convert_mth_strings ( mth_string ):
 #### VARIABLES 1.0
 
 entity_id = "COH084_CH_gov"
+url = "https://www.gov.uk/government/publications/companies-house-purchase-ledger-spend-2014"
+errors = 0
+data = []
 
 
+#### READ HTML 1.0
 
-from datetime import date
-this_year = date.today().year
+html = urllib2.urlopen(url)
+soup = BeautifulSoup(html, "lxml")
+
+
+#### SCRAPE DATA
+
+this_year = datetime.today().year
 year = 2014
 
 while year <= this_year:
 
-
-####
     url = "https://www.gov.uk/government/publications/companies-house-purchase-ledger-spend-" + str(year)
+    print url
     year = year + 1
-    errors = 0
-    data = []
-
-    #### READ HTML 1.0
 
     html = urllib2.urlopen(url)
     soup = BeautifulSoup(html, "lxml")
-
-
-    #### SCRAPE DATA
 
     title_divs = soup.find_all('div', 'attachment-details')
     for title_div in title_divs:
@@ -124,22 +125,22 @@ while year <= this_year:
 
 #### STORE DATA 1.0
 
-    for row in data:
-        csvYr, csvMth, url = row
-        filename = entity_id + "_" + csvYr + "_" + csvMth
-        todays_date = str(datetime.now())
-        file_url = url.strip()
+for row in data:
+    csvYr, csvMth, url = row
+    filename = entity_id + "_" + csvYr + "_" + csvMth
+    todays_date = str(datetime.now())
+    file_url = url.strip()
 
-        valid = validate(filename, file_url)
+    valid = validate(filename, file_url)
 
-        if valid == True:
-            scraperwiki.sqlite.save(unique_keys=['l'], data={"l": file_url, "f": filename, "d": todays_date })
-            print filename
-        else:
-            errors += 1
+    if valid == True:
+        scraperwiki.sqlite.save(unique_keys=['l'], data={"l": file_url, "f": filename, "d": todays_date })
+        print filename
+    else:
+        errors += 1
 
-    if errors > 0:
-        raise Exception("%d errors occurred during scrape." % errors)
+if errors > 0:
+    raise Exception("%d errors occurred during scrape." % errors)
 
 
 #### EOF
