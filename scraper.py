@@ -86,60 +86,60 @@ def convert_mth_strings ( mth_string ):
 #### VARIABLES 1.0
 
 entity_id = "COH084_CH_gov"
-url = "https://www.gov.uk/government/publications/companies-house-purchase-ledger-spend-2015"
 
-# TODO  'from datetime import date' and cycle to current year
-'''
+
+
 from datetime import date
 this_year = date.today().year
-print this_year
-year = 2013
+year = 2014
 
-while year <= this_year:'''
-
-
-errors = 0
-data = []
-
-#### READ HTML 1.0
-
-html = urllib2.urlopen(url)
-soup = BeautifulSoup(html, "lxml")
+while year <= this_year:
 
 
-#### SCRAPE DATA
+####
+    url = "https://www.gov.uk/government/publications/companies-house-purchase-ledger-spend-" + str(year)
+    year = year + 1
+    errors = 0
+    data = []
 
-title_divs = soup.find_all('div', 'attachment-details')
-for title_div in title_divs:
-    links = title_div.find_all('span', 'download')
-   # print links
-    for link in links:
-        l = link.find('a', href=True)['href']
-        url = url[:18] + l
-        title = title_div.find('h2', 'title').text.split()
-        csvYr = title[1].strip()
-        csvMth = title[0][:3].lower()
-        csvMth = convert_mth_strings(csvMth.upper())
-        data.append([csvYr, csvMth, url])
+    #### READ HTML 1.0
+
+    html = urllib2.urlopen(url)
+    soup = BeautifulSoup(html, "lxml")
+
+
+    #### SCRAPE DATA
+
+    title_divs = soup.find_all('div', 'attachment-details')
+    for title_div in title_divs:
+        links = title_div.find_all('span', 'download')
+        for link in links:
+            l = link.find('a', href=True)['href']
+            url = url[:18] + l
+            title = title_div.find('h2', 'title').text.split()
+            csvYr = title[-1].strip()
+            csvMth = title[-2][:3].lower()
+            csvMth = convert_mth_strings(csvMth.upper())
+            data.append([csvYr, csvMth, url])
 
 #### STORE DATA 1.0
 
-for row in data:
-    csvYr, csvMth, url = row
-    filename = entity_id + "_" + csvYr + "_" + csvMth
-    todays_date = str(datetime.now())
-    file_url = url.strip()
+    for row in data:
+        csvYr, csvMth, url = row
+        filename = entity_id + "_" + csvYr + "_" + csvMth
+        todays_date = str(datetime.now())
+        file_url = url.strip()
 
-    valid = validate(filename, file_url)
+        valid = validate(filename, file_url)
 
-    if valid == True:
-        scraperwiki.sqlite.save(unique_keys=['l'], data={"l": file_url, "f": filename, "d": todays_date })
-        print filename
-    else:
-        errors += 1
+        if valid == True:
+            scraperwiki.sqlite.save(unique_keys=['l'], data={"l": file_url, "f": filename, "d": todays_date })
+            print filename
+        else:
+            errors += 1
 
-if errors > 0:
-    raise Exception("%d errors occurred during scrape." % errors)
+    if errors > 0:
+        raise Exception("%d errors occurred during scrape." % errors)
 
 
 #### EOF
